@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Web</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        #chat-ui { display: none; }
+        #user-list { color: #555; font-style: italic; margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+        #messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; margin-bottom: 10px; padding: 10px; display: flex; flex-direction: column; }
+        input { width: calc(100% - 22px); padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .msg-item { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-ui">
+        <h2>Вход в мессенджер</h2>
+        <input type="text" id="username" placeholder="Введите ваше имя...">
+        <button onclick="joinChat()">Войти</button>
+    </div>
+
+    <div id="chat-ui">
+        <h3>В сети:</h3>
+        <div id="user-list">Ожидание пользователей...</div>
+        
+        <div id="messages"></div>
+        
+        <input type="text" id="msg-input" placeholder="Сообщение...">
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+</div>
+
+<script>
+    const socket = io();
+    let currentName = "";
+function joinChat() {
+        const nameInput = document.getElementById('username');
+        if (nameInput.value.trim() !== "") {
+            currentName = nameInput.value;
+            document.getElementById('login-ui').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'block';
+            socket.emit('join', currentName);
+        }
+    }
+
+    // Обновление списка пользователей
+    socket.on('update_users', function(users) {
+        const listDiv = document.getElementById('user-list');
+        if (users.length === 0) {
+            listDiv.innerText = "Ожидание пользователей...";
+        } else {
+            listDiv.innerText = users.join(', ');
+        }
+    });
+
+    function sendMessage() {
+        const input = document.getElementById('msg-input');
+        if (input.value.trim() !== "") {
+            socket.emit('send_message', {
+                user: currentName,
+                text: input.value
+            });
+            input.value = '';
+        }
+    }
+
+    // Получение сообщения
+    socket.on('receive_message', function(data) {
+        const msgDiv = document.getElementById('messages');
+        const newMessage = document.createElement('div');
+        newMessage.className = 'msg-item';
+        newMessage.innerHTML = <strong>${data.user}:</strong> ${data.text};
+        msgDiv.appendChild(newMessage);
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+    });
+
+    // Отправка по нажатию Enter
+    document.getElementById('msg-input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
+
+</body>
+</html>
