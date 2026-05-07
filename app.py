@@ -20,7 +20,6 @@ users = {}
 def index():
     return render_template("index.html")
 
-
 @socketio.on("join")
 def handle_join(username):
     users[request.sid] = username
@@ -30,7 +29,6 @@ def handle_join(username):
         list(users.values()),
         broadcast=True
     )
-
 
 @socketio.on("disconnect")
 def handle_disconnect():
@@ -43,7 +41,6 @@ def handle_disconnect():
             broadcast=True
         )
 
-
 @socketio.on("send_message")
 def handle_message(data):
     emit(
@@ -54,7 +51,6 @@ def handle_message(data):
         },
         broadcast=True
     )
-
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
