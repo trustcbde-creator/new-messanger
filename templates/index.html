@@ -103,6 +103,22 @@
 
             color: #94a3b8;
         }
+        .user-item{
+    padding:8px;
+    margin-bottom:5px;
+    background:#334155;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.user-item:hover{
+    background:#475569;
+}
+
+#selected-user{
+    margin-bottom:10px;
+    color:#38bdf8;
+}
     </style>
 </head>
 <body>
@@ -128,9 +144,11 @@
 
         <h3>В сети:</h3>
 
-        <div id="user-list">
-            Ожидание других...
-        </div>
+        <div id="user-list"></div>
+
+<div id="selected-user">
+    Никто не выбран
+</div>
 
         <div id="messages"></div>
 
@@ -150,90 +168,109 @@
 </div>
 
 <script>
-    const socket = io({
+
+const socket = io({
     transports: ["websocket", "polling"]
 });
 
-    let myName = "";
+let myName = "";
+let selectedUser = "";
 
-    socket.on("connect", () => {
-        console.log("Подключено к серверу");
-    });
+function joinChat() {
 
-    socket.on("connect_error", (err) => {
-        console.error(err);
-        alert("Ошибка подключения к серверу");
-    });
+    const input = document.getElementById("username");
 
-    function joinChat() {
+    if(input.value.trim() === "") return;
 
-        const input = document.getElementById("username");
+    myName = input.value.trim();
 
-        if (input.value.trim() === "") {
-            alert("Введите ник");
-            return;
-        }
+    document.getElementById("login-ui").style.display = "none";
 
-        myName = input.value.trim();
+    document.getElementById("chat-ui").style.display = "flex";
 
-        document.getElementById("login-ui").style.display = "none";
+    socket.emit("join", myName);
+}
 
-        document.getElementById("chat-ui").style.display = "flex";
+function sendMessage() {
 
-        socket.emit("join", myName);
+    const input = document.getElementById("msg-input");
+
+    if(input.value.trim() === "") return;
+
+    if(selectedUser === ""){
+        alert("Выберите пользователя");
+        return;
     }
 
-    function sendMessage() {
-
-        const input = document.getElementById("msg-input");
-
-        if (input.value.trim() === "") return;
-
-        socket.emit("send_message", {
-            user: myName,
-            text: input.value
-        });
-
-        input.value = "";
-    }
-
-    socket.on("update_users", (users) => {
-
-        document.getElementById("user-list").innerText =
-            users.length > 0
-                ? users.join(", ")
-                : "Ожидание других...";
+    socket.emit("private_message", {
+        user: myName,
+        target: selectedUser,
+        text: input.value
     });
 
-    socket.on("receive_message", (data) => {
+    input.value = "";
+}
 
-        const msgDiv = document.getElementById("messages");
+socket.on("update_users", (users) => {
 
-        const item = document.createElement("div");
+    const userList = document.getElementById("user-list");
 
-        item.className = "msg-item";
+    userList.innerHTML = "";
 
-        item.innerHTML =
-            `<span class="msg-author">${data.user}:</span> ${data.text}`;
+    users.forEach(user => {
 
-        msgDiv.appendChild(item);
+        if(user === myName) return;
 
-        msgDiv.scrollTop = msgDiv.scrollHeight;
+        const div = document.createElement("div");
+
+        div.className = "user-item";
+
+        div.innerText = user;
+
+        div.onclick = () => {
+
+            selectedUser = user;
+
+            document.getElementById(
+                "selected-user"
+            ).innerText =
+                "Чат с: " + user;
+        };
+
+        userList.appendChild(div);
     });
+});
 
-    document.addEventListener("keypress", (e) => {
+socket.on("receive_private_message", (data) => {
 
-        if (e.key === "Enter") {
+    const msgDiv = document.getElementById("messages");
 
-            if (
-                document.getElementById("login-ui").style.display !== "none"
-            ) {
-                joinChat();
-            } else {
-                sendMessage();
-            }
+    const item = document.createElement("div");
+
+    item.className = "msg-item";
+
+    item.innerHTML =
+        `<span class="msg-author">${data.user}:</span> ${data.text}`;
+
+    msgDiv.appendChild(item);
+
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+});
+
+document.addEventListener("keypress", (e) => {
+
+    if(e.key === "Enter"){
+
+        if(
+            document.getElementById("login-ui").style.display !== "none"
+        ){
+            joinChat();
+        }else{
+            sendMessage();
         }
-    });
+    }
+});
+
 </script>
 
 </body>
