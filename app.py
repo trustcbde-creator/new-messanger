@@ -5,7 +5,7 @@ from flask_socketio import SocketIO, emit
 app = Flask(__name__)
 # В реальном проекте используйте случайную строку для безопасности
 app.config['SECRET_KEY'] = 'secret_key_123'
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode'eventlet')
 
 # Словарь для хранения пользователей {id_сессии: имя}
 users = {}
