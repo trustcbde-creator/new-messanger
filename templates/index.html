@@ -3,182 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Dark Messenger</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
     <style>
-        /* Общие стили и Темная тема */
-        body { 
-            font-family: 'Inter', -apple-system, sans-serif; 
-            background-color: #0f172a; 
-            color: #f8fafc; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            height: 100vh;
             margin: 0;
         }
 
-        .container { 
-            background: #1e293b; 
-            padding: 2rem; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
-            width: 100%; 
-            max-width: 400px;
-            border: 1px solid #334155;
+        .container {
+            width: 400px;
+
+            background: #1e293b;
+
+            padding: 20px;
+
+            border-radius: 12px;
         }
 
-        h2, h3 { color: #38bdf8; margin-top: 0; }
+        h2, h3 {
+            color: #38bdf8;
+        }
 
-        #chat-ui { display: none; flex-direction: column; height: 500px; }
+        input {
+            width: 100%;
 
-        /* Список пользователей */
-        #user-list { 
-            font-size: 0.9rem; 
-            color: #94a3b8; 
-            margin-bottom: 1rem; 
-            padding: 8px;
-            background: #0f172a;
+            padding: 12px;
+
+            margin-bottom: 10px;
+
+            border: none;
             border-radius: 8px;
-        }
 
-        /* Сообщения */
-        #messages { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            border: 1px solid #334155; 
-            margin-bottom: 1rem; 
-            padding: 1rem; 
-            border-radius: 8px;
-            background: #0f172a;
-        }
-
-        .msg-item { margin-bottom: 10px; line-height: 1.4; }
-        .msg-author { color: #38bdf8; font-weight: bold; }
-
-        /* Поля ввода и кнопки */
-        input { 
-            width: calc(100% - 24px); 
-            padding: 12px; 
-            margin-bottom: 12px; 
-            border: 1px solid #334155; 
-            border-radius: 8px; 
-            background: #1e293b; 
+            background: #334155;
             color: white;
-            outline: none;
-        }
-        input:focus { border-color: #38bdf8; }
 
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            background: #0284c7; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+
+            padding: 12px;
+
+            border: none;
+            border-radius: 8px;
+
+            background: #0284c7;
+            color: white;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0369a1;
+        }
+
+        #chat-ui {
+            display: none;
+            flex-direction: column;
+        }
+
+        #messages {
+            height: 300px;
+
+            overflow-y: auto;
+
+            background: #0f172a;
+
+            margin-bottom: 10px;
+
+            padding: 10px;
+
+            border-radius: 8px;
+        }
+
+        .msg-item {
+            margin-bottom: 8px;
+        }
+
+        .msg-author {
+            color: #38bdf8;
             font-weight: bold;
-            transition: background 0.2s;
         }
-        button:hover { background: #0369a1; }
 
-        /* Скроллбар */
-        #messages::-webkit-scrollbar { width: 6px; }
-        #messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        #user-list {
+            margin-bottom: 10px;
+
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+
     <div id="login-ui">
         <h2>Войти в сеть</h2>
-        <input type="text" id="username" placeholder="Ваш никнейм..." autocomplete="off">
-        <button onclick="joinChat()">Начать общение</button>
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Ваш никнейм..."
+            autocomplete="off"
+        >
+
+        <button onclick="joinChat()">
+            Начать общение
+        </button>
     </div>
 
     <div id="chat-ui">
+
         <h3>В сети:</h3>
-        <div id="user-list">Ожидание других...</div>
-        
+
+        <div id="user-list">
+            Ожидание других...
+        </div>
+
         <div id="messages"></div>
-        
-        <input type="text" id="msg-input" placeholder="Введите сообщение..." autocomplete="off">
-        <button onclick="sendMessage()">Отправить</button>
+
+        <input
+            type="text"
+            id="msg-input"
+            placeholder="Введите сообщение..."
+            autocomplete="off"
+        >
+
+        <button onclick="sendMessage()">
+            Отправить
+        </button>
+
     </div>
+
 </div>
 
 <script>
-const socket = io("http://localhost:5000", {
-    transports: ["websocket", "polling"]
-});
+    const socket = io();
 
-let myName = "";
+    let myName = "";
 
-socket.on("connect", () => {
-    console.log("Подключено");
-});
-
-function joinChat() {
-    const input = document.getElementById("username");
-
-    if (input.value.trim() === "") {
-        alert("Введите ник");
-        return;
-    }
-
-    myName = input.value.trim();
-
-    document.getElementById("login-ui").style.display = "none";
-    document.getElementById("chat-ui").style.display = "flex";
-
-    socket.emit("join", myName);
-}
-
-function sendMessage() {
-    const input = document.getElementById("msg-input");
-
-    if (input.value.trim() === "") return;
-
-    socket.emit("send_message", {
-        user: myName,
-        text: input.value
+    socket.on("connect", () => {
+        console.log("Подключено к серверу");
     });
 
-    input.value = "";
-}
+    socket.on("connect_error", (err) => {
+        console.error(err);
+        alert("Ошибка подключения к серверу");
+    });
 
-socket.on("update_users", (users) => {
-    document.getElementById("user-list").innerText =
-        users.length > 0
-            ? users.join(", ")
-            : "Ожидание других...";
-});
+    function joinChat() {
 
-socket.on("receive_message", (data) => {
-    const msgDiv = document.getElementById("messages");
+        const input = document.getElementById("username");
 
-    const item = document.createElement("div");
-    item.className = "msg-item";
-
-    item.innerHTML =
-        `<span class="msg-author">${data.user}:</span> ${data.text}`;
-
-    msgDiv.appendChild(item);
-
-    msgDiv.scrollTop = msgDiv.scrollHeight;
-});
-
-document.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        if (
-            document.getElementById("login-ui").style.display !== "none"
-        ) {
-            joinChat();
-        } else {
-            sendMessage();
+        if (input.value.trim() === "") {
+            alert("Введите ник");
+            return;
         }
+
+        myName = input.value.trim();
+
+        document.getElementById("login-ui").style.display = "none";
+
+        document.getElementById("chat-ui").style.display = "flex";
+
+        socket.emit("join", myName);
     }
-});
+
+    function sendMessage() {
+
+        const input = document.getElementById("msg-input");
+
+        if (input.value.trim() === "") return;
+
+        socket.emit("send_message", {
+            user: myName,
+            text: input.value
+        });
+
+        input.value = "";
+    }
+
+    socket.on("update_users", (users) => {
+
+        document.getElementById("user-list").innerText =
+            users.length > 0
+                ? users.join(", ")
+                : "Ожидание других...";
+    });
+
+    socket.on("receive_message", (data) => {
+
+        const msgDiv = document.getElementById("messages");
+
+        const item = document.createElement("div");
+
+        item.className = "msg-item";
+
+        item.innerHTML =
+            `<span class="msg-author">${data.user}:</span> ${data.text}`;
+
+        msgDiv.appendChild(item);
+
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+    });
+
+    document.addEventListener("keypress", (e) => {
+
+        if (e.key === "Enter") {
+
+            if (
+                document.getElementById("login-ui").style.display !== "none"
+            ) {
+                joinChat();
+            } else {
+                sendMessage();
+            }
+        }
+    });
 </script>
 
 </body>
