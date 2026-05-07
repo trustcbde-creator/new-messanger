@@ -41,4 +41,4 @@ def handle_message(data):
 if __name__ == '__main__':
     # Порт для хостинга берется из переменной окружения PORT
     port = int(os.environ.get("PORT", 5000))
-    socketio.run(app, host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
