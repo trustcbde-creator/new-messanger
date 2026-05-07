@@ -108,90 +108,77 @@
 </div>
 
 <script>
-    // Подключение к серверу
-    const socket = io("http://localhost:5000", {
-        transports: ["websocket", "polling"]
-    });
+const socket = io("http://localhost:5000", {
+    transports: ["websocket", "polling"]
+});
 
-    let myName = "";
+let myName = "";
 
-    // Проверка подключения
-    socket.on("connect", () => {
-        console.log("Подключено к серверу");
-    });
+socket.on("connect", () => {
+    console.log("Подключено");
+});
 
-    socket.on("connect_error", (err) => {
-        console.error("Ошибка подключения:", err);
-        alert("Не удалось подключиться к серверу");
-    });
+function joinChat() {
+    const input = document.getElementById("username");
 
-    function joinChat() {
-        const input = document.getElementById("username");
-
-        // Проверка пустого ника
-        if (input.value.trim() === "") {
-            alert("Введите никнейм");
-            return;
-        }
-
-        myName = input.value.trim();
-
-        // Переключение интерфейса
-        document.getElementById("login-ui").style.display = "none";
-        document.getElementById("chat-ui").style.display = "flex";
-
-        // Отправляем серверу
-        socket.emit("join", myName);
+    if (input.value.trim() === "") {
+        alert("Введите ник");
+        return;
     }
 
-    function sendMessage() {
-        const input = document.getElementById("msg-input");
+    myName = input.value.trim();
 
-        if (input.value.trim() === "") return;
+    document.getElementById("login-ui").style.display = "none";
+    document.getElementById("chat-ui").style.display = "flex";
 
-        socket.emit("send_message", {
-            user: myName,
-            text: input.value.trim()
-        });
+    socket.emit("join", myName);
+}
 
-        input.value = "";
-    }
+function sendMessage() {
+    const input = document.getElementById("msg-input");
 
-    socket.on("update_users", (users) => {
-        document.getElementById("user-list").innerText =
-            users.length > 0
-                ? users.join(", ")
-                : "Ожидание других...";
+    if (input.value.trim() === "") return;
+
+    socket.emit("send_message", {
+        user: myName,
+        text: input.value
     });
 
-    socket.on("receive_message", (data) => {
-        const msgDiv = document.getElementById("messages");
+    input.value = "";
+}
 
-        const item = document.createElement("div");
-        item.className = "msg-item";
+socket.on("update_users", (users) => {
+    document.getElementById("user-list").innerText =
+        users.length > 0
+            ? users.join(", ")
+            : "Ожидание других...";
+});
 
-        item.innerHTML = 
-            <span class="msg-author">${data.user}:</span>
-            ${data.text}
-        ;
+socket.on("receive_message", (data) => {
+    const msgDiv = document.getElementById("messages");
 
-        msgDiv.appendChild(item);
+    const item = document.createElement("div");
+    item.className = "msg-item";
 
-        msgDiv.scrollTop = msgDiv.scrollHeight;
-    });
+    item.innerHTML =
+        `<span class="msg-author">${data.user}:</span> ${data.text}`;
 
-    // Enter
-    document.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            if (
-                document.getElementById("login-ui").style.display !== "none"
-            ) {
-                joinChat();
-            } else {
-                sendMessage();
-            }
+    msgDiv.appendChild(item);
+
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+});
+
+document.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        if (
+            document.getElementById("login-ui").style.display !== "none"
+        ) {
+            joinChat();
+        } else {
+            sendMessage();
         }
-    });
+    }
+});
 </script>
 
 </body>
