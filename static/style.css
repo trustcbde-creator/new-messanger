@@ -1,0 +1,86 @@
+body{
+}
+
+.their-message{
+    align-self:flex-start;
+
+    background:#1e293b;
+
+    padding:12px;
+
+    border-radius:15px;
+
+    max-width:300px;
+}
+
+.send-box{
+    display:flex;
+
+    padding:20px;
+
+    gap:10px;
+
+    background:#111827;
+}
+
+.send-box input{
+    flex:1;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#1e293b;
+
+    color:white;
+}
+
+.send-box button{
+    width:60px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2563eb;
+
+    color:white;
+}
+
+.auth-box{
+    width:350px;
+
+    margin:120px auto;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+}
+
+.auth-box input{
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#1e293b;
+
+    color:white;
+}
+
+.auth-box button{
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:#2563eb;
+
+    color:white;
+}
