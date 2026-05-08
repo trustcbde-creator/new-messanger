@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Dark Messenger</title>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+</head>
+<body>
+
+<div class="app">
+
+    <div class="sidebar">
+
+        <div class="sidebar-top">
+            <h2>{{ username }}</h2>
+        </div>
+
+        <div id="users"></div>
+
+    </div>
+
+    <div class="chat">
+
+        <div id="chat-header">
+            Выберите чат
+        </div>
+
+        <div id="messages"></div>
+
+        <div class="send-box">
+
+            <input id="message-input" placeholder="Сообщение">
+
+            <button onclick="sendMessage()">
+                ➤
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/static/app.js"></script>
+
+<script>
+window.MY_NAME = '{{ username }}'
+</script>
+
+</body>
+</html>
