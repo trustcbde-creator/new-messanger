@@ -1,10 +1,17 @@
 import eventlet
+eventlet.monkey_patch()
 
-    if 'user' in session:
+import os
+from datetime import datetime
 
-        online_users[session['user']] = request.sid
-
-        emit('online_update', broadcast=True)
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session,
+    jsonify
+)
 
 
 @socketio.on('disconnect')
